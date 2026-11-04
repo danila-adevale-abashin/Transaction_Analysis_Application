@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 import pandas as pd
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -41,3 +42,16 @@ def read_transactions_excel(file_path: str) -> list[dict]:
     except Exception as e:
         logger.error(f"Ошибка при чтении Excel файла: {e}")
         return []
+
+
+def load_user_settings(file_path: str = "user_settings.json") -> dict:
+    """Читает настройки пользователя из JSON-файла."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logger.error(f"Файл настроек {file_path} не найден.")
+        return {"user_currencies": [], "user_stocks": []}
+    except json.JSONDecodeError:
+        logger.error(f"Ошибка чтения JSON в файле {file_path}.")
+        return {"user_currencies": [], "user_stocks": []}
