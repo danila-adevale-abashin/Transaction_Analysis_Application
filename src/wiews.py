@@ -1,6 +1,16 @@
 from datetime import datetime
 from src.utils import read_transactions_excel
 
+import os
+import requests
+from dotenv import load_dotenv
+
+import logging
+
+load_dotenv()
+
+logger = logging.getLogger(__name__)
+
 def get_greeting(current_time: datetime) -> str:
     """Возвращает приветствие в зависимости от времени суток."""
     hour = current_time.hour
@@ -84,6 +94,42 @@ def get_top_transactions(transactions: list[dict], limit: int = 5) -> list[dict]
     return result
 
 
+def get_currency_rates(currencies: list[str]) -> list[dict]:
+    """Получает курсы валют через API apilayer."""
+    api_key = os.getenv("EXCHANGE_API_KEY")
+
+    if not api_key:
+        logger.error("API-ключ для валют не найден в .env")
+        return []
+
+    result = []
+    for currency in currencies:
+        url = f"https://api.apilayer.com/exchangerates_data/convert?to=RUB&from={currency}&amount=1"
+        headers = {"apikey": api_key}
+
+        try:
+            # Делаем запрос
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()  # Проверяем, что нет ошибки 401 или 500
+
+            data = response.json()
+
+            # Достаем результат (курс 1 единицы валюты в рублях)
+            rate = data.get("result")
+
+            if rate:
+                result.append({
+                    "currency": currency,
+                    "rate": round(rate, 2)
+                })
+
+        except requests.RequestException as e:
+            logger.error(f"Ошибка API при получении курса {currency}: {e}")
+            # Если ошибка, просто пропускаем эту валюту, чтобы программа не упала
+
+    return result
+
+
 if __name__ == "__main__":
     # Проверка статистики карт
     data = read_transactions_excel("data/Operations Sun Oct 01 2023-Mon Nov 02 2026.xlsx")
@@ -94,3 +140,9 @@ if __name__ == "__main__":
     top_5 = get_top_transactions(data)
     print(f"ТОП-5 ТРАНЗАКЦИЙ:"
           f"\n{top_5}")
+
+    # Проверка курсов валют
+    print("\n--- КУРСЫ ВАЛЮТ ---")
+    currencies = ["USD", "EUR"]
+    rates = get_currency_rates(currencies)
+    print(rates)
