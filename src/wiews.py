@@ -130,6 +130,42 @@ def get_currency_rates(currencies: list[str]) -> list[dict]:
     return result
 
 
+def get_stock_prices(stocks: list[str]) -> list[dict]:
+    """Получает текущие цены на акции через API Finnhub."""
+    api_key = os.getenv("FINNHUB_API_KEY")
+
+    if not api_key:
+        logger.error("API-ключ для акций (FINNHUB_API_KEY) не найден в .env")
+        return []
+
+    result = []
+    for stock in stocks:
+        # Эндпоинт Finnhub для получения текущей котировки
+        url = f"https://finnhub.io/api/v1/quote?symbol={stock}&token={api_key}"
+
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+
+            data = response.json()
+            # В Finnhub текущая цена лежит в поле 'c' (current price)
+            price = data.get("c")
+
+            # Если цена равна 0, значит акция не найдена или рынок закрыт
+            if price and price > 0:
+                result.append({
+                    "stock": stock,
+                    "price": round(float(price), 2)
+                })
+            else:
+                logger.warning(f"Не удалось получить цену для {stock}: {data}")
+
+        except requests.RequestException as e:
+            logger.error(f"Ошибка API при получении цены {stock}: {e}")
+
+    return result
+
+
 if __name__ == "__main__":
     # Проверка статистики карт
     data = read_transactions_excel("data/Operations Sun Oct 01 2023-Mon Nov 02 2026.xlsx")
@@ -146,3 +182,8 @@ if __name__ == "__main__":
     currencies = ["USD", "EUR"]
     rates = get_currency_rates(currencies)
     print(rates)
+
+    # Проверка акций
+    print("\n--- АКЦИИ ---")
+    stocks = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
+    print(get_stock_prices(stocks))
