@@ -1,6 +1,7 @@
 from datetime import datetime
-from src.utils import read_transactions_excel
+from src.utils import read_transactions_excel, load_user_settings
 
+import json
 import os
 import requests
 from dotenv import load_dotenv
@@ -166,6 +167,61 @@ def get_stock_prices(stocks: list[str]) -> list[dict]:
     return result
 
 
+import json
+from datetime import datetime
+
+
+def main_page_view(date_str: str, transactions: list[dict]) -> str:
+    """Собирает JSON-ответ для главной страницы."""
+    # Парсим дату из строки
+    try:
+        target_date = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        logger.error(f"Неверный формат даты: {date_str}")
+        return "{}"
+
+    # Определяем начало месяца для фильтрации
+    start_of_month = datetime(target_date.year, target_date.month, 1)
+
+    # Фильтруем транзакции
+    filtered_transactions = []
+    for t in transactions:
+        raw_date = t.get("date")
+        if not raw_date:
+            continue
+
+        if hasattr(raw_date, "to_pydatetime"):
+            t_date = raw_date.to_pydatetime()
+        elif isinstance(raw_date, datetime):
+            t_date = raw_date
+        else:
+            try:
+                t_date = datetime.strptime(str(raw_date)[:10], "%Y-%m-%d")
+            except ValueError:
+                continue
+
+        # Проверяем, попадает ли дата в нужный диапазон (с 1 числа по целевую дату)
+        if start_of_month <= t_date <= target_date:
+            filtered_transactions.append(t)
+
+    # Загружаем настройки (валюты и акции)
+    settings = load_user_settings()
+    currencies = settings.get("user_currencies", [])
+    stocks = settings.get("user_stocks", [])
+
+    # Собираем итоговый словарь
+    result = {
+        "greeting": get_greeting(target_date),
+        "cards": get_card_stats(filtered_transactions),
+        "top_transactions": get_top_transactions(filtered_transactions),
+        "currency_rates": get_currency_rates(currencies),
+        "stock_prices": get_stock_prices(stocks)
+    }
+
+    # Возвращаем JSON-строку
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
 if __name__ == "__main__":
     # Проверка статистики карт
     data = read_transactions_excel("data/Operations Sun Oct 01 2023-Mon Nov 02 2026.xlsx")
@@ -187,3 +243,8 @@ if __name__ == "__main__":
     print("\n--- АКЦИИ ---")
     stocks = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
     print(get_stock_prices(stocks))
+
+    print("\n--- ГЛАВНАЯ СТРАНИЦА ---")
+    # Берем дату из твоего файла, например 2026-11-01
+    json_response = main_page_view("2026-11-01 23:59:59", data)
+    print(json_response)

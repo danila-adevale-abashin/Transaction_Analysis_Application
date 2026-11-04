@@ -42,7 +42,7 @@ dependencies = [
     "six (==1.17.0)",
     "typing-extensions (==4.16.0)",
     "tzdata (==2026.6)",
-    "urllib3 (==2.8.0)"
+    "urllib3 (==2.8.0)",
 ]
 
 [tool.poetry]
