@@ -244,6 +244,7 @@ if __name__ == "__main__":
     stocks = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
     print(get_stock_prices(stocks))
 
+    # Проверка главной страницы
     print("\n--- ГЛАВНАЯ СТРАНИЦА ---")
     # Берем дату из твоего файла, например 2026-11-01
     json_response = main_page_view("2026-11-01 23:59:59", data)
