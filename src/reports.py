@@ -1,11 +1,25 @@
-import logging
 import functools
-from typing import Callable, Any
-import pandas as pd
+import logging
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Callable
+
+import pandas as pd
+
 from src.utils import read_transactions_excel
 
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+if not logger.handlers:
+    file_handler = logging.FileHandler(LOG_DIR / "reports.log", mode="w", encoding="utf-8")
+
+    formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
 
 def report_decorator(filename: str = "report.csv"):

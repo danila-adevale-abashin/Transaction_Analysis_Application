@@ -1,16 +1,29 @@
-from datetime import datetime
-from src.utils import read_transactions_excel, load_user_settings
-
 import json
+import logging
 import os
+from datetime import datetime
+from pathlib import Path
+
 import requests
 from dotenv import load_dotenv
 
-import logging
+from src.utils import load_user_settings, read_transactions_excel
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
+if not logger.handlers:
+    file_handler = logging.FileHandler(LOG_DIR / "wiews.log", mode="w", encoding="utf-8")
+
+    formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
 
 def get_greeting(current_time: datetime) -> str:
     """Возвращает приветствие в зависимости от времени суток."""
@@ -52,11 +65,13 @@ def get_card_stats(transactions: list[dict]) -> list[dict]:
     # Собираем итоговый список для JSON
     result = []
     for last_digits, data in cards.items():
-        result.append({
-            "last_digits": last_digits,
-            "total_spent": round(data["spent"], 2),
-            "cashback": round(data["cashback"], 2)
-        })
+        result.append(
+            {
+                "last_digits": last_digits,
+                "total_spent": round(data["spent"], 2),
+                "cashback": round(data["cashback"], 2),
+            }
+        )
 
     return result
 
@@ -85,12 +100,14 @@ def get_top_transactions(transactions: list[dict], limit: int = 5) -> list[dict]
             except ValueError:
                 formatted_date = str(raw_date)
 
-        result.append({
-            "date": formatted_date,
-            "amount": round(abs(t.get("amount", 0)), 2),
-            "category": t.get("default_category", ""),
-            "description": t.get("description", "")
-        })
+        result.append(
+            {
+                "date": formatted_date,
+                "amount": round(abs(t.get("amount", 0)), 2),
+                "category": t.get("default_category", ""),
+                "description": t.get("description", ""),
+            }
+        )
 
     return result
 
@@ -119,10 +136,7 @@ def get_currency_rates(currencies: list[str]) -> list[dict]:
             rate = data.get("result")
 
             if rate:
-                result.append({
-                    "currency": currency,
-                    "rate": round(rate, 2)
-                })
+                result.append({"currency": currency, "rate": round(rate, 2)})
 
         except requests.RequestException as e:
             logger.error(f"Ошибка API при получении курса {currency}: {e}")
@@ -154,10 +168,7 @@ def get_stock_prices(stocks: list[str]) -> list[dict]:
 
             # Если цена равна 0, значит акция не найдена или рынок закрыт
             if price and price > 0:
-                result.append({
-                    "stock": stock,
-                    "price": round(float(price), 2)
-                })
+                result.append({"stock": stock, "price": round(float(price), 2)})
             else:
                 logger.warning(f"Не удалось получить цену для {stock}: {data}")
 
@@ -215,7 +226,7 @@ def main_page_view(date_str: str, transactions: list[dict]) -> str:
         "cards": get_card_stats(filtered_transactions),
         "top_transactions": get_top_transactions(filtered_transactions),
         "currency_rates": get_currency_rates(currencies),
-        "stock_prices": get_stock_prices(stocks)
+        "stock_prices": get_stock_prices(stocks),
     }
 
     # Возвращаем JSON-строку
@@ -230,8 +241,7 @@ if __name__ == "__main__":
 
     # Проверка ТОП-транзакций
     top_5 = get_top_transactions(data)
-    print(f"ТОП-5 ТРАНЗАКЦИЙ:"
-          f"\n{top_5}")
+    print(f"ТОП-5 ТРАНЗАКЦИЙ:" f"\n{top_5}")
 
     # Проверка курсов валют
     print("\n--- КУРСЫ ВАЛЮТ ---")

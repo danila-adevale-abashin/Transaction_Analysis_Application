@@ -1,9 +1,22 @@
 import logging
 import math
-from typing import List, Dict, Any
+from pathlib import Path
+from typing import Any, Dict, List
+
 from src.utils import read_transactions_excel
 
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+if not logger.handlers:
+    file_handler = logging.FileHandler(LOG_DIR / "services.log", mode="w", encoding="utf-8")
+
+    formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
 
 def investment_bank(month: str, transactions: List[Dict[str, Any]], limit: int) -> float:
