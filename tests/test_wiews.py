@@ -1,27 +1,47 @@
-import pytest
-from unittest.mock import patch, Mock
 from datetime import datetime
-from src.wiews import (
-    get_greeting,
-    get_card_stats,
-    get_top_transactions,
-    get_currency_rates,
-    get_stock_prices
-)
+from unittest.mock import Mock, patch
+
+import pytest
+
+from src.wiews import get_card_stats, get_currency_rates, get_greeting, get_stock_prices, get_top_transactions
 
 
 @pytest.fixture
 def test_transactions():
     """Набор тестовых транзакций в виде словарей."""
     return [
-        {"card_number": "*1234", "amount": -1000.0, "date": datetime(2026, 11, 1), "default_category": "Супермаркеты",
-         "description": "Пятерочка", "bonus_and_cashback": 10.0},
-        {"card_number": "*1234", "amount": -500.0, "date": datetime(2026, 11, 2), "default_category": "Фастфуд",
-         "description": "Макдоналдс", "bonus_and_cashback": 5.0},
-        {"card_number": "*5678", "amount": -2000.0, "date": datetime(2026, 11, 3), "default_category": "Переводы",
-         "description": "Другу", "bonus_and_cashback": 0.0},
-        {"card_number": "*1234", "amount": 5000.0, "date": datetime(2026, 11, 4), "default_category": "Пополнения",
-         "description": "Зарплата", "bonus_and_cashback": 0.0}
+        {
+            "card_number": "*1234",
+            "amount": -1000.0,
+            "date": datetime(2026, 11, 1),
+            "default_category": "Супермаркеты",
+            "description": "Пятерочка",
+            "bonus_and_cashback": 10.0,
+        },
+        {
+            "card_number": "*1234",
+            "amount": -500.0,
+            "date": datetime(2026, 11, 2),
+            "default_category": "Фастфуд",
+            "description": "Макдоналдс",
+            "bonus_and_cashback": 5.0,
+        },
+        {
+            "card_number": "*5678",
+            "amount": -2000.0,
+            "date": datetime(2026, 11, 3),
+            "default_category": "Переводы",
+            "description": "Другу",
+            "bonus_and_cashback": 0.0,
+        },
+        {
+            "card_number": "*1234",
+            "amount": 5000.0,
+            "date": datetime(2026, 11, 4),
+            "default_category": "Пополнения",
+            "description": "Зарплата",
+            "bonus_and_cashback": 0.0,
+        },
     ]
 
 

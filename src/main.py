@@ -1,11 +1,13 @@
-import os
 import logging
+import os
+from pathlib import Path
+
 import pandas as pd
+
+from src.reports import spending_by_category
+from src.services import investment_bank
 from src.utils import read_transactions_excel
 from src.wiews import main_page_view
-from pathlib import Path
-from src.services import investment_bank
-from src.reports import spending_by_category
 
 LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
