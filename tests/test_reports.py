@@ -45,17 +45,10 @@ def test_spending_by_category(sample_dataframe, tmp_path):
     """Тест: фильтрация по категории и последним 90 дням."""
     file_path = tmp_path / "category_report.csv"
 
-    # Оборачиваем функцию нашим декоратором, чтобы избежать создания мусорных файлов в проекте
     decorated_func = report_decorator(str(file_path))(spending_by_category)
 
-    # Вызываем функцию за 2 ноября 2026
     result_df = decorated_func(sample_dataframe, "Супермаркеты", "2026-11-02")
 
-    # 1. Должна остаться только одна транзакция:
-    # - 2026-11-01 подходит (в пределах 90 дней)
-    # - 2026-06-01 не подходит (старая)
-    # - Фастфуд не подходит
-    # - Пополнение (5000) не подходит, так как мы фильтруем только amount < 0
     assert len(result_df) == 1
     assert result_df.iloc[0]["amount"] == -1000.0
     assert result_df.iloc[0]["default_category"] == "Супермаркеты"
