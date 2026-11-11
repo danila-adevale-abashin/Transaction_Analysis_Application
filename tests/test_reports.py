@@ -1,22 +1,26 @@
-import pytest
-import pandas as pd
 from datetime import datetime, timedelta
+
+import pandas as pd
+import pytest
+
 from src.reports import report_decorator, spending_by_category
 
 
 @pytest.fixture
 def sample_dataframe():
     """Создает тестовый DataFrame с транзакциями."""
-    return pd.DataFrame([
-        # Трата в нужной категории, в пределах 90 дней
-        {"date": datetime(2026, 11, 1), "amount": -1000.0, "default_category": "Супермаркеты"},
-        # Трата в нужной категории, но слишком старая (более 90 дней назад)
-        {"date": datetime(2026, 6, 1), "amount": -500.0, "default_category": "Супермаркеты"},
-        # Трата в другой категории
-        {"date": datetime(2026, 11, 2), "amount": -200.0, "default_category": "Фастфуд"},
-        # Пополнение (положительная сумма)
-        {"date": datetime(2026, 11, 3), "amount": 5000.0, "default_category": "Супермаркеты"}
-    ])
+    return pd.DataFrame(
+        [
+            # Трата в нужной категории, в пределах 90 дней
+            {"date": datetime(2026, 11, 1), "amount": -1000.0, "default_category": "Супермаркеты"},
+            # Трата в нужной категории, но слишком старая (более 90 дней назад)
+            {"date": datetime(2026, 6, 1), "amount": -500.0, "default_category": "Супермаркеты"},
+            # Трата в другой категории
+            {"date": datetime(2026, 11, 2), "amount": -200.0, "default_category": "Фастфуд"},
+            # Пополнение (положительная сумма)
+            {"date": datetime(2026, 11, 3), "amount": 5000.0, "default_category": "Супермаркеты"},
+        ]
+    )
 
 
 def test_report_decorator(tmp_path):
